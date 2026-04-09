@@ -20,7 +20,7 @@ SERVER_CONF_FILE="awg0.conf"
 SERVER_PORT="51820"
 SERVER_INTERFACE="awg0"
 SERVER_IP_NET="10.0.0.1/24"
-DOCKER_IMAGE="docker pull ghcr.io/qreboot/amneziawg-go-docker:latest"
+DOCKER_IMAGE="ghcr.io/qreboot/amneziawg-go-docker:latest"
 DEFAULT_CLIENT_NAME="default_client"
 DEFAULT_CLIENT_IP="10.0.0.2"
 
