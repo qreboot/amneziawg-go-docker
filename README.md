@@ -32,7 +32,7 @@ sudo ./setup-amnezia.sh --install
 
    - ✅ Работающий VPN сервер в Docker
 
-   - ✅ Клиент по умолчанию default_client с IP 10.0.0.2
+   - ✅ Клиент по умолчанию 
 
    - ✅ Конфиг клиента в /srv/containers/amnezia/conf/default_client.conf
 
@@ -118,7 +118,7 @@ docker ps | grep amnezia
 | Параметр          | Значение                       |
 |-------------------|--------------------------------|
 |IP сервера	        | 10.0.0.1/24                    |
-Порт                | 22022                          |
+Порт                | 51820                          |
 Интерфейс           | awg0                           |
 Клиент по умолчанию | default_client (IP: 10.0.0.2)  |
 
