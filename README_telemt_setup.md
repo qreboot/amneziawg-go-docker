@@ -20,7 +20,7 @@
 
 ```bash
 # 1. Скачать скрипт
-curl -O https://raw.githubusercontent.com/qreboot/telemt-docker/main/setup-telemt.sh
+curl -O https://raw.githubusercontent.com/qreboot/amneziawg-go-docker/main/setup-telemt.sh
 
 # 2. Сделать исполняемым
 chmod +x setup-telemt.sh
@@ -116,8 +116,6 @@ docker ps | grep telemt
 # Проверить логи
 docker logs telemt
 
-# Проверить наличие образа
-docker images | grep telemt
 ```
 #### Ошибка "port already allocated"
 
