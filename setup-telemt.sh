@@ -263,7 +263,7 @@ generate_config() {
 
     # Генерируем конфиг
     generate_config_content "$DEFAULT_SECRET" "$DEFAULT_TAG" > "$CONFIG_FILE"
-
+    chown -R 65532:65532 "$HOST_CONF_DIR/config"
     log_info "Конфигурационный файл создан: $HOST_CONF_DIR/config/$CONFIG_FILE"
 }
 
