@@ -383,9 +383,15 @@ get_container_version() {
     if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         docker exec "$CONTAINER_NAME" amneziawg-go --version 2>/dev/null | extract_version
     else
+        # Берём {{.Image}} (sha256 образа, из которого контейнер собран), а не
+        # {{.Config.Image}}: тег подвижный и после повторного pull того же тега
+        # может указывать уже на другой образ. При ошибке возвращаем пустую
+        # строку (не сбой), вызывающий код умеет её обрабатывать.
         local img
-        img=$(docker inspect "$CONTAINER_NAME" --format '{{.Config.Image}}' 2>/dev/null) || return 1
-        get_image_version "$img"
+        img=$(docker inspect "$CONTAINER_NAME" --format '{{.Image}}' 2>/dev/null) || img=""
+        if [[ -n "$img" ]]; then
+            get_image_version "$img"
+        fi
     fi
 }
 
