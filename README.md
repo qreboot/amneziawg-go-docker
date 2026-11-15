@@ -131,6 +131,8 @@ sudo ./setup-amnezia.sh
 
    7. Только настройка sysctl
 
+   8. Обновить контейнер (скачать образ и перезапустить)
+
 ### Командная строка
 
 ```bash
@@ -148,6 +150,9 @@ sudo ./setup-amnezia.sh --update-client
 
 # Удалить клиента
 sudo ./setup-amnezia.sh --delete-client
+
+# Обновить контейнер (pull образа + проверка даунгрейда)
+sudo ./setup-amnezia.sh --update
 
 # Помощь
 sudo ./setup-amnezia.sh --help
@@ -167,6 +172,10 @@ docker start amnezia
 
 # Перезапуск
 docker restart amnezia
+
+# Обновление (скачать свежий образ и пересоздать контейнер;
+# даунгрейд версии отклоняется, если не задать ALLOW_DOWNGRADE=1)
+sudo ./setup-amnezia.sh --update
 
 # Статус
 docker ps | grep amnezia
@@ -194,19 +203,26 @@ docker ps | grep amnezia
 Клиент по умолчанию | default_client (IP: 10.0.0.2)  |
 
 ### Изменение параметров
-Отредактируйте переменные в начале скрипта:
+Все параметры переопределяются переменными окружения — редактировать скрипт не нужно:
 ```bash
-CONTAINER_NAME="amnezia"
-HOST_CONF_DIR="/srv/containers/amnezia/conf"
-CONTAINER_CONF_DIR="/etc/amnezia/amneziawg"
-SERVER_CONF_FILE="awg0.conf"
-SERVER_PORT="51820"
-SERVER_INTERFACE="awg0"
-SERVER_IP_NET="10.0.0.1/24"
-DOCKER_IMAGE="ghcr.io/qreboot/amneziawg-go:v1.0.0"
-DEFAULT_CLIENT_NAME="default_client"
-DEFAULT_CLIENT_IP="10.0.0.2"
+sudo env SERVER_PORT=51821 DOCKER_IMAGE=ghcr.io/qreboot/amneziawg-go-docker:latest \
+    ./setup-amnezia.sh --install
 ```
+
+| Переменная          | По умолчанию                                                       |
+|---------------------|--------------------------------------------------------------------|
+| CONTAINER_NAME      | amnezia                                                            |
+| HOST_CONF_DIR       | /srv/containers/amnezia/conf                                       |
+| CONTAINER_CONF_DIR  | /etc/amnezia/amneziawg                                             |
+| SERVER_CONF_FILE    | awg0.conf                                                          |
+| SERVER_PORT         | 51820                                                              |
+| SERVER_INTERFACE    | awg0                                                               |
+| SERVER_IP_NET       | 10.0.0.1/24                                                        |
+| DOCKER_IMAGE        | ghcr.io/qreboot/amneziawg-go-docker:latest                         |
+| DEFAULT_CLIENT_NAME | default_client                                                     |
+| DEFAULT_CLIENT_IP   | 10.0.0.2                                                           |
+| AWGCFG_URL          | https://raw.githubusercontent.com/qreboot/amneziawg-go-docker/...  |
+| ALLOW_DOWNGRADE     | 0 (1 — разрешить даунгрейд версии в `--update`)                    |
 
 ## 👥 Управление клиентами
 ### Добавление клиента
