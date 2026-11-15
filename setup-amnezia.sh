@@ -23,11 +23,7 @@ SERVER_IP_NET="10.0.0.1/24"
 DEFAULT_CLIENT_NAME="default_client"
 DEFAULT_CLIENT_IP="10.0.0.2"
 
-# Образ и источник awgcfg.py можно переопределить переменными окружения,
-# например (форк или локально собранный образ):
-#   AMNEZIA_DOCKER_IMAGE=ghcr.io/SJay3/amneziawg-go-docker:v1.0.1 ./setup-amnezia.sh --install
-#   AWGCFG_URL=https://raw.githubusercontent.com/SJay3/amneziawg-go-docker/main/awgcfg.py ...
-DOCKER_IMAGE="${AMNEZIA_DOCKER_IMAGE:-ghcr.io/qreboot/amneziawg-go-docker:latest}"
+DOCKER_IMAGE="${DOCKER_IMAGE:-ghcr.io/qreboot/amneziawg-go-docker:latest}"
 AWGCFG_URL="${AWGCFG_URL:-https://raw.githubusercontent.com/qreboot/amneziawg-go-docker/refs/heads/main/awgcfg.py}"
 
 # Цвета для вывода
@@ -422,12 +418,12 @@ update_container() {
             return 0
         fi
         if version_ge "$current_ver" "$new_ver"; then
-            if [[ "${AMNEZIA_ALLOW_DOWNGRADE:-0}" != "1" ]]; then
+            if [[ "${ALLOW_DOWNGRADE:-0}" != "1" ]]; then
                 log_error "Отказ: даунгрейд $current_ver -> $new_ver не допускается."
-                log_error "Если даунгрейд действительно нужен, запустите с AMNEZIA_ALLOW_DOWNGRADE=1."
+                log_error "Если даунгрейд действительно нужен, запустите с ALLOW_DOWNGRADE=1."
                 exit 1
             fi
-            log_warn "AMNEZIA_ALLOW_DOWNGRADE=1: выполняю даунгрейд $current_ver -> $new_ver."
+            log_warn "ALLOW_DOWNGRADE=1: выполняю даунгрейд $current_ver -> $new_ver."
         fi
     fi
 
@@ -711,9 +707,9 @@ case "$1" in
         echo "  --help                   - Показать справку"
         echo ""
         echo "Переменные окружения:"
-        echo "  AMNEZIA_DOCKER_IMAGE     - образ контейнера (по умолчанию qreboot/amneziawg-go-docker:latest)"
-        echo "  AWGCFG_URL               - источник awgcfg.py"
-        echo "  AMNEZIA_ALLOW_DOWNGRADE=1 - разрешить даунгрейд в --update"
+        echo "  DOCKER_IMAGE       - образ контейнера (по умолчанию qreboot/amneziawg-go-docker:latest)"
+        echo "  AWGCFG_URL         - источник awgcfg.py"
+        echo "  ALLOW_DOWNGRADE=1  - разрешить даунгрейд в --update"
         echo ""
         echo "Запуск без параметров открывает интерактивное меню."
         ;;
