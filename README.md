@@ -221,7 +221,6 @@ sudo env SERVER_PORT=51821 DOCKER_IMAGE=ghcr.io/qreboot/amneziawg-go-docker:late
 | DOCKER_IMAGE        | ghcr.io/qreboot/amneziawg-go-docker:latest                         |
 | DEFAULT_CLIENT_NAME | default_client                                                     |
 | DEFAULT_CLIENT_IP   | 10.0.0.2                                                           |
-| AWGCFG_URL          | https://raw.githubusercontent.com/qreboot/amneziawg-go-docker/...  |
 | ALLOW_DOWNGRADE     | 0 (1 — разрешить даунгрейд версии в `--update`)                    |
 
 ## 👥 Управление клиентами
