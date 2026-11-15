@@ -13,17 +13,16 @@ set -e  # Прерывать выполнение при ошибке
 # -----------------------------------------------------------------------------
 # Конфигурационные переменные
 # -----------------------------------------------------------------------------
-CONTAINER_NAME="amnezia"
-HOST_CONF_DIR="/srv/containers/amnezia/conf"
-CONTAINER_CONF_DIR="/etc/amnezia/amneziawg"
-SERVER_CONF_FILE="awg0.conf"
-SERVER_PORT="51820"
-SERVER_INTERFACE="awg0"
-SERVER_IP_NET="10.0.0.1/24"
-DEFAULT_CLIENT_NAME="default_client"
-DEFAULT_CLIENT_IP="10.0.0.2"
-
+CONTAINER_NAME="${CONTAINER_NAME:-amnezia}"
+HOST_CONF_DIR="${HOST_CONF_DIR:-/srv/containers/amnezia/conf}"
+CONTAINER_CONF_DIR="${CONTAINER_CONF_DIR:-/etc/amnezia/amneziawg}"
+SERVER_CONF_FILE="${SERVER_CONF_FILE:-awg0.conf}"
+SERVER_PORT="${SERVER_PORT:-51820}"
+SERVER_INTERFACE="${SERVER_INTERFACE:-awg0}"
+SERVER_IP_NET="${SERVER_IP_NET:-10.0.0.1/24}"
 DOCKER_IMAGE="${DOCKER_IMAGE:-ghcr.io/qreboot/amneziawg-go-docker:latest}"
+DEFAULT_CLIENT_NAME="${DEFAULT_CLIENT_NAME:-default_client}"
+DEFAULT_CLIENT_IP="${DEFAULT_CLIENT_IP:-10.0.0.2}"
 AWGCFG_URL="${AWGCFG_URL:-https://raw.githubusercontent.com/qreboot/amneziawg-go-docker/refs/heads/main/awgcfg.py}"
 
 # Цвета для вывода
@@ -67,6 +66,11 @@ check_root() {
         log_error "Этот скрипт должен выполняться с правами root (sudo)."
         exit 1
     fi
+}
+
+# Существует ли контейнер $CONTAINER_NAME (работающий или остановленный)
+container_exists() {
+    docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"
 }
 
 # Определение типа ОС и пакетного менеджера
@@ -323,7 +327,7 @@ run_container() {
     log_step "Запуск Docker-контейнера AmneziaWG..."
 
     # Остановить и удалить старый контейнер, если есть
-    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    if container_exists; then
         log_warn "Контейнер $CONTAINER_NAME уже существует."
         docker stop "$CONTAINER_NAME" 2>/dev/null || true
         docker rm "$CONTAINER_NAME" 2>/dev/null || true
@@ -363,16 +367,21 @@ run_container() {
 # -----------------------------------------------------------------------------
 # Обновление контейнера
 # -----------------------------------------------------------------------------
-# Версия amneziawg-go внутри образа (кратковременный запуск без сети и прав).
-# --version выводит несколько строк, версия — в первой ("amneziawg-go v3.1.20260828").
+# Версия из вывода "amneziawg-go --version": вывод многострочный, версия —
+# во второй колонке первой строки ("amneziawg-go v3.1.20260828")
+extract_version() {
+    head -n1 | awk '{print $2}'
+}
+
+# Версия amneziawg-go внутри образа (кратковременный запуск без сети и прав)
 get_image_version() {
-    docker run --rm --entrypoint amneziawg-go --network none "$1" --version 2>/dev/null | head -n1 | awk '{print $2}'
+    docker run --rm --entrypoint amneziawg-go --network none "$1" --version 2>/dev/null | extract_version
 }
 
 # Версия amneziawg-go в текущем контейнере (работающем или остановленном)
 get_container_version() {
     if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-        docker exec "$CONTAINER_NAME" amneziawg-go --version 2>/dev/null | head -n1 | awk '{print $2}'
+        docker exec "$CONTAINER_NAME" amneziawg-go --version 2>/dev/null | extract_version
     else
         local img
         img=$(docker inspect "$CONTAINER_NAME" --format '{{.Config.Image}}' 2>/dev/null) || return 1
@@ -389,7 +398,7 @@ version_ge() {
 update_container() {
     log_step "Обновление Docker-контейнера AmneziaWG..."
 
-    if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    if ! container_exists; then
         log_error "Контейнер $CONTAINER_NAME не найден. Сначала выполните установку (--install)."
         exit 1
     fi
@@ -413,7 +422,7 @@ update_container() {
     log_info "Версия amneziawg-go в новом образе: $new_ver"
 
     if [[ -n "$current_ver" ]]; then
-        if [[ "$new_ver" == "$current_ver" || "${new_ver#v}" == "${current_ver#v}" ]]; then
+        if version_ge "$new_ver" "$current_ver" && version_ge "$current_ver" "$new_ver"; then
             log_info "✅ Образ уже актуален ($new_ver). Обновление не требуется."
             return 0
         fi
@@ -605,7 +614,7 @@ delete_client_interactive() {
 interactive_mode() {
     while true; do
         show_menu
-        read -p "Ваш выбор [0-7]: " choice
+        read -p "Ваш выбор [0-8]: " choice
         echo
 
         case $choice in
@@ -648,7 +657,7 @@ interactive_mode() {
                 exit 0
                 ;;
             *)
-                log_error "Неверный выбор. Пожалуйста, выберите 0-7."
+                log_error "Неверный выбор. Пожалуйста, выберите 0-8."
                 ;;
         esac
         echo
@@ -706,10 +715,11 @@ case "$1" in
         echo "  --update                 - Обновить контейнер (pull образа + проверка даунгрейда)"
         echo "  --help                   - Показать справку"
         echo ""
-        echo "Переменные окружения:"
+        echo "Переменные окружения (переопределяют значения по умолчанию, полный список в README):"
         echo "  DOCKER_IMAGE       - образ контейнера (по умолчанию qreboot/amneziawg-go-docker:latest)"
         echo "  AWGCFG_URL         - источник awgcfg.py"
         echo "  ALLOW_DOWNGRADE=1  - разрешить даунгрейд в --update"
+        echo "  Также переопределяются: CONTAINER_NAME, HOST_CONF_DIR, SERVER_PORT и др. (см. README)"
         echo ""
         echo "Запуск без параметров открывает интерактивное меню."
         ;;
