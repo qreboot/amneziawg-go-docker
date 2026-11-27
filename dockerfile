@@ -2,6 +2,11 @@
 
 FROM golang:1.25.8-alpine3.23 AS builder
 
+# Версии upstream зафиксированы: содержимое образа определяется этими ARG,
+# а не датой сборки. Обновлять версии — осознанно, bump'ом этих значений.
+ARG AMNEZIAWG_GO_VERSION=v3.1.20260828
+ARG AMNEZIAWG_TOOLS_VERSION=v3.1.20260812
+
 RUN apk add --no-cache \
         bash \
         build-base \
@@ -13,8 +18,8 @@ RUN apk add --no-cache \
 
 WORKDIR /src
 
-RUN git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-go.git && \
-    git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-tools.git
+RUN git clone --depth 1 --branch "${AMNEZIAWG_GO_VERSION}" https://github.com/amnezia-vpn/amneziawg-go.git && \
+    git clone --depth 1 --branch "${AMNEZIAWG_TOOLS_VERSION}" https://github.com/amnezia-vpn/amneziawg-tools.git
 
 RUN cd /src/amneziawg-go && \
     make -j"$(nproc)" && \
